@@ -1,0 +1,391 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Do you like Kiran?</title>
+  <style>
+    :root{
+      --bg:#0f1724;
+      --card:#0b1220;
+      --accent:#ffd166;
+      --muted:#9aa7b2;
+      --btn:#36c7a7;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;
+      background:linear-gradient(180deg,#071020 0%, #0f1724 100%);
+      color:#e6eef6;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:24px;
+    }
+
+    .card{
+      width:100%;
+      max-width:900px;
+      background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      border-radius:18px;
+      padding:36px;
+      box-shadow:0 10px 40px rgba(2,6,23,0.6);
+      text-align:center;
+      position:relative;
+      overflow:visible;
+    }
+
+    h1{
+      margin:0 0 10px;
+      font-size:36px;
+      letter-spacing:-0.4px;
+    }
+    p.sub{ color:var(--muted); margin-top:0; margin-bottom:24px }
+
+    .play-area{
+      height:220px;
+      border-radius:14px;
+      padding:18px;
+      background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(0,0,0,0.03));
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      position:relative; /* IMPORTANT: buttons positioned relative to this */
+      overflow:visible;
+    }
+
+    .buttons{
+      display:flex;
+      gap:18px;
+      align-items:center;
+      justify-content:center;
+      position:relative;
+      width:100%;
+      max-width:640px;
+    }
+
+    button{
+      cursor:pointer;
+      border:0;
+      padding:12px 22px;
+      font-size:18px;
+      border-radius:12px;
+      box-shadow:0 6px 18px rgba(2,6,23,0.5);
+      transition:transform .12s ease, box-shadow .12s ease, opacity .18s ease;
+    }
+
+    .yes{
+      background:linear-gradient(90deg,var(--btn), #1fbf8f);
+      color:#05201a;
+      font-weight:800;
+      z-index:2;
+    }
+    .yes:active{ transform:translateY(2px) scale(.995) }
+
+    .no{
+      background:transparent;
+      color:var(--accent);
+      border:2px solid rgba(255,209,102,0.14);
+      padding:10px 20px;
+      position:absolute;
+      left: calc(50% + 260px);
+      top: 50%;
+      transform:translate(-50%,-50%);
+      will-change:transform,left,top;
+      user-select:none;
+      touch-action:none;
+      transition: all 0.5s cubic-bezier(.25,1,.5,1);
+    }
+
+    /* Welcome overlay (hidden by default) */
+    .welcome{
+      position:absolute;
+      inset:0;
+      display:none;               /* hidden until triggered */
+      align-items:center;
+      justify-content:center;
+      pointer-events:none;
+      opacity:0;
+      transform:translateY(6px) scale(.98);
+      transition:opacity .35s ease, transform .35s ease;
+      z-index:120; /* ensure above everything */
+    }
+
+    .welcome.show{
+      display:flex;
+      pointer-events:auto;
+      opacity:1;
+      transform:translateY(0) scale(1);
+    }
+
+    .highlight{
+      width:min(880px, 86%);
+      background:linear-gradient(90deg, rgba(255,209,102,0.12), rgba(255,255,255,0.02));
+      border-radius:16px;
+      padding:28px 32px;
+      border:1px solid rgba(255,209,102,0.18);
+      backdrop-filter: blur(6px);
+      text-align:center;
+      box-shadow:0 14px 70px rgba(0,0,0,0.6), 0 8px 18px rgba(255,209,102,0.04) inset;
+    }
+
+    .highlight h2{
+      margin:0 0 10px;
+      color:var(--accent);
+      font-size:26px;
+      letter-spacing:0.6px;
+    }
+    .highlight p{ margin:0; color:#f6f0e6; font-weight:700; font-size:18px; }
+
+    /* small decorative sparks (visual only) */
+    .spark{
+      position:absolute;
+      width:8px; height:8px;
+      border-radius:2px;
+      background:var(--accent);
+      opacity:0.12;
+      filter:blur(.6px);
+      animation:float 2s linear infinite;
+      z-index:10;
+    }
+    @keyframes float{
+      0%{ transform: translateY(0) rotate(0) }
+      50%{ transform: translateY(-18px) rotate(90deg) }
+      100%{ transform: translateY(0) rotate(180deg) }
+    }
+
+    /* Emoji particles */
+    .particles{
+      pointer-events:none;
+      position:absolute;
+      left:0; top:0;
+      width:100%;
+      height:100%;
+      overflow:visible;
+      z-index:140; /* above welcome */
+    }
+    .particle{
+      position:absolute;
+      font-size:22px;
+      will-change:transform,opacity;
+      opacity:0;
+      transform:translateY(0) scale(0.6);
+      animation:pop-and-fall 1000ms cubic-bezier(.2,.9,.3,1) forwards;
+      text-shadow: 0 6px 20px rgba(0,0,0,0.55);
+    }
+    @keyframes pop-and-fall{
+      0%{ opacity:1; transform: translateY(0) scale(0.95) rotate(0) }
+      40%{ transform: translateY(-70px) scale(1.15) rotate(15deg) }
+      100%{ opacity:0; transform: translateY(260px) scale(0.85) rotate(45deg) }
+    }
+
+    /* small responsive tweaks */
+    @media (max-width:760px){
+      h1{ font-size:28px }
+      .no{ left: calc(50% + 140px); }
+      .play-area{ height:280px }
+    }
+    @media (max-width:420px){
+      .no{ left: calc(50% + 90px); top:58%; }
+      button{ font-size:16px; padding:10px 16px }
+    }
+  </style>
+</head>
+<body>
+  <div class="card" role="main" aria-labelledby="q">
+    <h1 id="q">Do you like Kiran?</h1>
+    <p class="sub">Choose an option 😉 :</p>
+
+    <div class="play-area" id="play">
+      <div class="buttons" id="btnWrap">
+        <button class="yes" id="yesBtn" aria-label="Yes, I like Kiran">YES</button>
+        <button class="no" id="noBtn" tabindex="-1" aria-hidden="true">NO</button>
+      </div>
+
+      <!-- Hidden welcome overlay (display:none until shown) -->
+      <div class="welcome" id="welcome" aria-live="polite" role="status">
+        <div class="highlight">
+          <h3>✨Welcome to Kiran's bestfriend club✨</h3>
+        </div>
+      </div>
+
+      <!-- particle container for emoji confetti -->
+      <div class="particles" id="particles"></div>
+
+      <!-- decorative sparks -->
+      <div class="spark" style="left:8%; top:14%;"></div>
+      <div class="spark" style="left:88%; top:34%; animation-delay:.6s;"></div>
+      <div class="spark" style="left:62%; top:6%; animation-delay:.3s;"></div>
+    </div>
+  </div>
+
+  <script>
+    (function(){
+      const play = document.getElementById('play');
+      const noBtn = document.getElementById('noBtn');
+      const yesBtn = document.getElementById('yesBtn');
+      const welcome = document.getElementById('welcome');
+      const particles = document.getElementById('particles');
+      const btnWrap = document.getElementById('btnWrap');
+
+      // CONFIG
+      const THRESHOLD = 120;       // px proximity to dodge
+      const COOLDOWN = 320;        // ms between moves
+      const TRANSITION_MS = 480;   // ms glide duration
+
+      let lastMoveAt = 0;
+
+      function dist(x1,y1,x2,y2){
+        const dx = x1-x2, dy = y1-y2; return Math.sqrt(dx*dx+dy*dy);
+      }
+      function clamp(v, a, b){ return Math.max(a, Math.min(b, v)); }
+
+      // Smooth move function
+      function moveNoSmooth() {
+        const now = Date.now();
+        if (now - lastMoveAt < COOLDOWN) return;
+        lastMoveAt = now;
+
+        const areaRect = play.getBoundingClientRect();
+        const btnRect = noBtn.getBoundingClientRect();
+
+        const usableW = Math.max(8, areaRect.width - btnRect.width - 8);
+        const usableH = Math.max(8, areaRect.height - btnRect.height - 8);
+
+        const yesRect = yesBtn.getBoundingClientRect();
+        const yesCenterX = (yesRect.left + yesRect.right) / 2 - areaRect.left;
+        const yesCenterY = (yesRect.top + yesRect.bottom) / 2 - areaRect.top;
+
+        let newX = Math.random() * usableW;
+        let newY = Math.random() * usableH;
+
+        for (let i=0;i<8;i++){
+          const centerX = newX + btnRect.width/2;
+          const centerY = newY + btnRect.height/2;
+          if (dist(centerX, centerY, yesCenterX, yesCenterY) < 140) {
+            newX = Math.random() * usableW;
+            newY = Math.random() * usableH;
+          } else break;
+        }
+        newX = clamp(newX, 6, usableW);
+        newY = clamp(newY, 6, usableH);
+
+        const leftPx = newX + btnRect.width/2;
+        const topPx  = newY + btnRect.height/2;
+
+        noBtn.style.transition = `all ${TRANSITION_MS}ms cubic-bezier(.25,1,.5,1)`;
+        noBtn.style.left = `${leftPx}px`;
+        noBtn.style.top  = `${topPx}px`;
+        noBtn.style.transform = `translate(-50%,-50%) rotate(${(Math.random()*6-3).toFixed(1)}deg)`;
+      }
+
+      // pointer proximity detection
+      play.addEventListener('pointermove', (e) => {
+        // if welcome already shown, don't move NO
+        if (welcome.classList.contains('show')) return;
+
+        const areaRect = play.getBoundingClientRect();
+        const mouseX = e.clientX - areaRect.left;
+        const mouseY = e.clientY - areaRect.top;
+
+        const btnRect = noBtn.getBoundingClientRect();
+        const btnCenterX = btnRect.left + btnRect.width/2 - areaRect.left;
+        const btnCenterY = btnRect.top + btnRect.height/2 - areaRect.top;
+
+        const d = dist(mouseX, mouseY, btnCenterX, btnCenterY);
+        if (d < THRESHOLD) moveNoSmooth();
+      }, {passive:true});
+
+      // hover / touch / click attempts
+      noBtn.addEventListener('mouseenter', moveNoSmooth);
+      noBtn.addEventListener('touchstart', (e)=>{ e.preventDefault(); if (!welcome.classList.contains('show')) moveNoSmooth(); }, {passive:false});
+      noBtn.addEventListener('click', (e)=>{
+        e.preventDefault();
+        if (!welcome.classList.contains('show')) moveNoSmooth();
+      });
+
+      // Emoji list for particles
+      const EMOJIS = ['🎉','✨','🥳','🎊','🍗','❤️','😄','👏'];
+
+      // spawn particles at center of YES button
+      function spawnParticles(originX, originY, count = 12){
+        for (let i=0;i<count;i++){
+          const span = document.createElement('div');
+          span.className = 'particle';
+          span.textContent = EMOJIS[Math.floor(Math.random()*EMOJIS.length)];
+          // randomize start position a bit around origin
+          const offsetX = (Math.random()*60 - 30);
+          const offsetY = (Math.random()*20 - 10);
+          span.style.left = `${originX + offsetX}px`;
+          span.style.top  = `${originY + offsetY}px`;
+          // randomize size
+          const size = 16 + Math.floor(Math.random()*18);
+          span.style.fontSize = `${size}px`;
+          // randomize animation timing slightly
+          span.style.animationDuration = `${850 + Math.floor(Math.random()*400)}ms`;
+          // give slight rotation start
+          span.style.transform = `translateY(0) rotate(${Math.random()*40-20}deg) scale(0.9)`;
+          particles.appendChild(span);
+          // remove after animation (max 1.4s)
+          setTimeout(()=> {
+            span.remove();
+          }, 1600);
+        }
+      }
+
+      // YES click: show welcome overlay, spawn particles, and hide buttons
+      yesBtn.addEventListener('click', () => {
+        // hide buttons smoothly so welcome is not overlapped
+        btnWrap.querySelectorAll('button').forEach(b => {
+          b.style.opacity = '0';
+          b.style.pointerEvents = 'none';
+        });
+
+        // position and show the welcome overlay
+        welcome.classList.add('show');
+
+        // compute origin point (center of YES button relative to particles container)
+        const playRect = play.getBoundingClientRect();
+        const yesRect = yesBtn.getBoundingClientRect();
+        const originX = yesRect.left + yesRect.width/2 - playRect.left;
+        const originY = yesRect.top + yesRect.height/2 - playRect.top;
+
+        // spawn confetti-emojis
+        spawnParticles(originX, originY, 14);
+
+        // optional gentle pulse on card
+        document.querySelector('.card').animate([
+          { boxShadow: '0 10px 40px rgba(2,6,23,0.6)'},
+          { boxShadow: '0 24px 90px rgba(2,6,23,0.8)'},
+          { boxShadow: '0 10px 40px rgba(2,6,23,0.6)'}
+        ], { duration: 700, easing: 'ease-out'});
+
+        // ensure the welcome is fully visible and centered
+        setTimeout(() => {
+          // reveal text as final flourish (if you want further animation)
+        }, 50);
+      });
+
+      // initial placement of NO (after layout)
+      window.addEventListener('load', ()=>{
+        const areaRect = play.getBoundingClientRect();
+        const btnRect = noBtn.getBoundingClientRect();
+        const initX = Math.min(areaRect.width - btnRect.width - 12, areaRect.width * 0.78);
+        const initY = areaRect.height/2 - btnRect.height/2;
+        const leftPx = initX + btnRect.width/2;
+        const topPx  = initY + btnRect.height/2;
+        noBtn.style.left = `${leftPx}px`;
+        noBtn.style.top  = `${topPx}px`;
+        noBtn.style.transform = 'translate(-50%,-50%)';
+      });
+
+      // on resize, nudge NO so it stays inside
+      window.addEventListener('resize', () => {
+        setTimeout(() => moveNoSmooth(), 160);
+      });
+    })();
+  </script>
+</body>
+</html>
